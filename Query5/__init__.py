@@ -52,7 +52,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         dataString = "actor : {} - genre : {} - director : {}".format(actor or "Not given", genre or "Not given", director or "Not given") + "\n"
         dataString += str(result1).strip('[]') + "\n"
-        dataString += len(result1) + "\n"
+        dataString += str(len(result1)) + "\n"
 
         return func.HttpResponse(dataString)
 
