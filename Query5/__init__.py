@@ -29,6 +29,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     dataString = "actor : {} - genre : {} - director : {}".format(actor or "Not given", genre or "Not given", director or "Not given")
 
-    func.HttpResponse(dataString)
+    return func.HttpResponse(dataString)
     
 
