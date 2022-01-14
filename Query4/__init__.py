@@ -19,6 +19,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if len(server)==0 or len(database)==0 or len(username)==0 or len(password)==0:
         return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
 
+    errorMessage = ""
+    dataString = ""
+
     try:
         logging.info("Test de connexion avec pyodbc...")
         with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:

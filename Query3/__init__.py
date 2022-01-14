@@ -17,6 +17,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if len(neo4j_server)==0 or len(neo4j_user)==0 or len(neo4j_password)==0:
         return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
 
+    errorMessage = ""
+    dataString = ""
+
     try:
         logging.info("Test de connexion avec py2neo...")
         graph = Graph(neo4j_server, auth=(neo4j_user, neo4j_password))
