@@ -50,11 +50,29 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         except:
             errorMessage = "Erreur de connexion a la base Neo4j"
 
-        dataString = "actor : {} - genre : {} - director : {}".format(actor or "Not given", genre or "Not given", director or "Not given") + "\n"
-        dataString += str(result1).strip('[]') + "\n"
-        dataString += str(len(result1)) + "\n"
+        server = os.environ["TPBDD_SERVER"]
+        database = os.environ["TPBDD_DB"]
+        username = os.environ["TPBDD_USERNAME"]
+        password = os.environ["TPBDD_PASSWORD"]
+        driver= '{ODBC Driver 17 for SQL Server}'
 
-        return func.HttpResponse(dataString)
+        result2 = ""
+
+        try:
+            logging.info("Test de connexion avec pyodbc...")
+            filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst"
+            filter3_2 = "tGenres.genre = '{}'".format(genre) if genre or "1=1"
+            with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT SUM(tTitles.runtimeMinutes)/COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
+                rows = cursor.fetchall()
+                for row in rows:
+                    result2 += str(row[0])
+
+    if len(server)==0 or len(database)==0 or len(username)==0 or len(password)==0:
+        return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
+
+        return func.HttpResponse(result)
 
     except Exception as e:
         return func.HttpResponse(str(e))
