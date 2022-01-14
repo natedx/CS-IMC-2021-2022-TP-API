@@ -67,4 +67,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(dataString + nameMessage + errorMessage, status_code=500)
 
     else:
-        return func.HttpResponse(dataString + " Connexions réussies a Neo4j et SQL!")
+        return func.HttpResponse(dataString + nameMessage + " Connexions réussies a Neo4j et SQL!")
