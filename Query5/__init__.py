@@ -58,6 +58,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         result2 = ""
 
+        if len(server)==0 or len(database)==0 or len(username)==0 or len(password)==0:
+        return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
+
         try:
             logging.info("Test de connexion avec pyodbc...")
             filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst"
@@ -68,9 +71,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 rows = cursor.fetchall()
                 for row in rows:
                     result2 += str(row[0])
-
-    if len(server)==0 or len(database)==0 or len(username)==0 or len(password)==0:
-        return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
 
         return func.HttpResponse(result)
 
