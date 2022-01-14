@@ -2,23 +2,33 @@ import logging
 
 import azure.functions as func
 
+"""
+Neo4j :
+Montrez les artistes ayant eu plusieurs responsabilités dans un même film
+(ex: à la fois acteur et directeur, ou toute autre combinaison) et les titres de ces films.
+"""
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    neo4j_server = os.environ["TPBDD_NEO4J_SERVER"]
+    neo4j_user = os.environ["TPBDD_NEO4J_USER"]
+    neo4j_password = os.environ["TPBDD_NEO4J_PASSWORD"]
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    if len(neo4j_server)==0 or len(neo4j_user)==0 or len(neo4j_password)==0:
+        return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
+
+    try:
+        logging.info("Test de connexion avec py2neo...")
+        graph = Graph(neo4j_server, auth=(neo4j_user, neo4j_password))
+        producers = graph.run("MATCH (name:Name)-[rel]->(title:Title) WITH DISTINCT name AS distinctNames, title, count(DISTINCT type(rel)) AS rels WHERE rels > 1 RETURN distinctNames.primaryName")
+        for producer in producers:
+            dataString += f"CYPHER: primaryName={producer['distinctNames.primaryName']}\n"
+    except:
+        errorMessage = "Erreur de connexion a la base Neo4j"
+
+    if errorMessage != "":
+        return func.HttpResponse(dataString + errorMessage, status_code=500)
+
     else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+        return func.HttpResponse(dataString)
+    
