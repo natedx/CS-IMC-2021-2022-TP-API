@@ -37,23 +37,25 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     errorMessage = ""
     result1 = []
+    result2 = ""
 
-    try:
-        logging.info("Test de connexion avec py2neo...")
-        graph = Graph(neo4j_server, auth=(neo4j_user, neo4j_password))
-        filter1 = "n1.primaryName='{}'".format(actor) if actor else "true"
-        filter2 = "n2.primaryName='{}'".format(director) if director else "true"
-        producers = graph.run("MATCH (n1:Name)-[rel:ACTED_IN]->(t:Title)<-[rel2:DIRECTED]-(n2:Name) WITH DISTINCT t.tconst AS titleIds, n1, n2 WHERE {} AND {} RETURN titleIds".format(filter1, filter2))
-        for producer in producers:
-            result1.append(str(producer['titleIds']))
-    except:
-        errorMessage = "Erreur de connexion a la base Neo4j"
+    if actor or director:
+        try:
+            logging.info("Test de connexion avec py2neo...")
+            graph = Graph(neo4j_server, auth=(neo4j_user, neo4j_password))
+            filter1 = "n1.primaryName='{}'".format(actor) if actor else "true"
+            filter2 = "n2.primaryName='{}'".format(director) if director else "true"
+            producers = graph.run("MATCH (n1:Name)-[rel:ACTED_IN]->(t:Title)<-[rel2:DIRECTED]-(n2:Name) WITH DISTINCT t.tconst AS titleIds, n1, n2 WHERE {} AND {} RETURN titleIds".format(filter1, filter2))
+            for producer in producers:
+                result1.append(str(producer['titleIds']))
+        except:
+            errorMessage = "Erreur de connexion a la base Neo4j"
 
-    if len(result1) == 0:
-        errorMessage = "Pas de films trouvés"
+        if len(result1) == 0:
+            errorMessage = "Pas de films trouvés"
 
-    if errorMessage != "":
-        return func.HttpResponse(errorMessage)
+        if errorMessage != "":
+            return func.HttpResponse(errorMessage)
 
     logging.info(str(result1).strip('[]'))
 
@@ -63,8 +65,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     password = os.environ["TPBDD_PASSWORD"]
     driver= '{ODBC Driver 17 for SQL Server}'
 
-    result2 = ""
-
     if len(server)==0 or len(database)==0 or len(username)==0 or len(password)==0:
         return func.HttpResponse("Au moins une des variables d'environnement n'a pas été initialisée.", status_code=500)
 
@@ -72,10 +72,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         logging.info("Test de connexion avec pyodbc...")
         filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst" if genre else ""
         filter3_2 = "tGenres.genre = '{}'".format(genre) if genre else "1=1"
-        logging.info("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
+        filter3_3 = "tTitles.tconst IN ({})".format(str(result1).strip('[]')) if (actor or director) else "1=1"
+        logging.info("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE {} AND {}".format(filter3_1,filter3_3,filter3_2))
         with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
+            cursor.execute("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE {} AND {}".format(filter3_1,filter3_3,filter3_2))
             rows = cursor.fetchall()
             (duration, count) = rows[0]
 
