@@ -50,6 +50,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         except:
             errorMessage = "Erreur de connexion a la base Neo4j"
 
+        if errorMessage != "":
+            return func.HttpResponse(errorMessage)
+
         server = os.environ["TPBDD_SERVER"]
         database = os.environ["TPBDD_DB"]
         username = os.environ["TPBDD_USERNAME"]
@@ -71,6 +74,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 rows = cursor.fetchall()
                 for row in rows:
                     result2 += str(row[0])
+
+        except:
+            errorMessage = "Erreur de connection à la base SQL"
+
+        if errorMessage != "":
+            return func.HttpResponse(errorMessage)
 
         return func.HttpResponse(result)
 
