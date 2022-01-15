@@ -13,19 +13,19 @@ qui correspondent aux critères genre, acteur et directeur. L'interprétation de
 
 def getFilmIdsByActorDirector(actor, director):
 
+    errorMessage = ""
+    result = []
+    code = 200
+
     if not actor and not director:
-        return ([], "")
+        return (result, errorMessage, code)
 
     neo4j_server = os.environ["TPBDD_NEO4J_SERVER"]
     neo4j_user = os.environ["TPBDD_NEO4J_USER"]
     neo4j_password = os.environ["TPBDD_NEO4J_PASSWORD"]
 
-    errorMessage = ""
-    result = []
-    code = 200
-
     if len(neo4j_server)==0 or len(neo4j_user)==0 or len(neo4j_password)==0:
-        errorMessage = "Au moins une des variables d'environnement n'a pas été initialisée."
+        errorMessage = "Neo4J : Au moins une des variables d'environnement n'a pas été initialisée."
         code = 500
         return (result, errorMessage, code)
 
@@ -49,18 +49,19 @@ def getFilmIdsByActorDirector(actor, director):
 
 
 def getAverageDurationByGenre(genre, filmIds):
+    
+    result = 0.
+    errorMessage = ""
+    code = 200
+    
     server = os.environ["TPBDD_SERVER"]
     database = os.environ["TPBDD_DB"]
     username = os.environ["TPBDD_USERNAME"]
     password = os.environ["TPBDD_PASSWORD"]
     driver= '{ODBC Driver 17 for SQL Server}'
 
-    result = 0.
-    errorMessage = ""
-    code = 200
-
     if len(server)==0 or len(database)==0 or len(username)==0 or len(password)==0:
-        errorMessage = "Au moins une des variables d'environnement n'a pas été initialisée."
+        errorMessage = "SQL : Au moins une des variables d'environnement n'a pas été initialisée."
         code = 500
         return (result, errorMessage, code)
 
