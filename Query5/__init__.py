@@ -84,7 +84,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(result)
 
     except Exception as e:
-        return func.HttpResponse(str(e))
+        return func.HttpResponse(repr(e))
 
     
 
