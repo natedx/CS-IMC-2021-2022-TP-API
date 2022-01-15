@@ -6,11 +6,6 @@ import os
 import pyodbc as pyodbc
 import azure.functions as func
 
-"""
-Pour la requête 5, spécifiez et implémentez une API qui renvoie la durée moyenne des films
-qui correspondent aux critères genre, acteur et directeur. L'interprétation de cette énoncé vous est laissée libre.
-"""
-
 def getFilmIdsByActorDirector(actor, director):
 
     errorMessage = ""
@@ -30,11 +25,10 @@ def getFilmIdsByActorDirector(actor, director):
         return (result, errorMessage, code)
 
     try:
-        logging.info("Test de connexion avec py2neo...")
         graph = Graph(neo4j_server, auth=(neo4j_user, neo4j_password))
-        filter1 = "n1.primaryName='{}'".format(actor) if actor else "true"
-        filter2 = "n2.primaryName='{}'".format(director) if director else "true"
-        producers = graph.run("MATCH (n1:Name)-[rel:ACTED_IN]->(t:Title)<-[rel2:DIRECTED]-(n2:Name) WITH DISTINCT t.tconst AS titleIds, n1, n2 WHERE {} AND {} RETURN titleIds".format(filter1, filter2))
+        filterActor = "n1.primaryName='{}'".format(actor) if actor else "true"
+        filterDirector = "n2.primaryName='{}'".format(director) if director else "true"
+        producers = graph.run("MATCH (n1:Name)-[rel:ACTED_IN]->(t:Title)<-[rel2:DIRECTED]-(n2:Name) WITH DISTINCT t.tconst AS titleIds, n1, n2 WHERE {} AND {} RETURN titleIds".format(filterActor, filterDirector))
         for producer in producers:
             result.append(str(producer['titleIds']))
     except:
@@ -66,14 +60,12 @@ def getAverageDurationByGenre(genre, filmIds):
         return (result, errorMessage, code)
 
     try:
-        logging.info("Test de connexion avec pyodbc...")
-        filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst" if genre else ""
-        filter3_2 = "tGenres.genre = '{}'".format(genre) if genre else "1=1"
-        filter3_3 = "tTitles.tconst IN ({})".format(str(filmIds).strip('[]')) if len(filmIds) > 0 else "1=1"
-        logging.info("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE {} AND {}".format(filter3_1,filter3_3,filter3_2))
+        joinGenre = "JOIN tGenres ON tTitles.tconst = tGenres.tconst" if genre else ""
+        filterGenre = "tGenres.genre = '{}'".format(genre) if genre else "1=1"
+        filterActorDirector = "tTitles.tconst IN ({})".format(str(filmIds).strip('[]')) if len(filmIds) > 0 else "1=1"
         with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE {} AND {}".format(filter3_1,filter3_3,filter3_2))
+            cursor.execute("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE {} AND {}".format(joinGenre, filterGenre, filterActorDirector))
             rows = cursor.fetchall()
             (duration, count) = rows[0]
 
@@ -107,7 +99,10 @@ def parseParams(req):
 
     return (actor, director, genre)
 
-
+"""
+Pour la requête 5, spécifiez et implémentez une API qui renvoie la durée moyenne des films
+qui correspondent aux critères genre, acteur et directeur. L'interprétation de cette énoncé vous est laissée libre.
+"""
 def main(req: func.HttpRequest) -> func.HttpResponse:
 
     (actor, director, genre) = parseParams(req)
