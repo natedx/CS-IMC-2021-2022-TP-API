@@ -67,14 +67,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         logging.info("Test de connexion avec pyodbc...")
-        filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst"
+        filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst" if genre or ""
         filter3_2 = "tGenres.genre = '{}'".format(genre or "1=1")
+        logging.info("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
         with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT SUM(tTitles.runtimeMinutes)/COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
+            cursor.execute("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
             rows = cursor.fetchall()
             for row in rows:
-                result2 += str(row[0])
+                result2 += "duration : {} - count : {}".format(row[0], row[1])
         logging.info("SQL request successful !")
         logging.info(repr(rows))
 
