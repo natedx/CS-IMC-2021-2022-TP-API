@@ -81,7 +81,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         if errorMessage != "":
             return func.HttpResponse(errorMessage)
 
-        return func.HttpResponse(result)
+        return func.HttpResponse(result2)
 
     except Exception as e:
         return func.HttpResponse(repr(e))
