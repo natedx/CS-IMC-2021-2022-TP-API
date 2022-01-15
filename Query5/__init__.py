@@ -49,6 +49,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except:
         errorMessage = "Erreur de connexion a la base Neo4j"
 
+    if len(result1) == 0:
+        errorMessage = "Pas de films trouvés"
+
     if errorMessage != "":
         return func.HttpResponse(errorMessage)
 
@@ -74,8 +77,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             cursor = conn.cursor()
             cursor.execute("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
             rows = cursor.fetchall()
-            for row in rows:
-                result2 += "duration : {} - count : {}".format(row[0], row[1])
+            (duration, count) = rows[0]
+
+            if float(count) == 0.:
+                errorMessage = "Pas de films trouvés"
+            else:
+                result2 = "Durée moyenne : {}".format(float(duration) / float(count))
         logging.info("SQL request successful !")
         logging.info(repr(rows))
 
