@@ -41,7 +41,7 @@ def getFilmIdsByActorDirector(actor, director):
         errorMessage = "Erreur de connexion a la base Neo4j"
         code = 500
 
-    if len(result1) == 0:
+    if len(result) == 0:
         errorMessage = "Pas de films trouvés"
         code = 404
 
@@ -69,7 +69,7 @@ def getAverageDurationByGenre(genre, filmIds):
         logging.info("Test de connexion avec pyodbc...")
         filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst" if genre else ""
         filter3_2 = "tGenres.genre = '{}'".format(genre) if genre else "1=1"
-        filter3_3 = "tTitles.tconst IN ({})".format(str(result1).strip('[]')) if len(filmIds) > 0 else "1=1"
+        filter3_3 = "tTitles.tconst IN ({})".format(str(filmIds).strip('[]')) if len(filmIds) > 0 else "1=1"
         logging.info("SELECT SUM(tTitles.runtimeMinutes), COUNT(*) FROM tTitles {} WHERE {} AND {}".format(filter3_1,filter3_3,filter3_2))
         with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
             cursor = conn.cursor()
