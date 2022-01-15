@@ -67,7 +67,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         try:
             logging.info("Test de connexion avec pyodbc...")
             filter3_1 = "JOIN tGenres ON tTitles.tconst = tGenres.tconst"
-            filter3_2 = "tGenres.genre = '{}'".format(genre) if genre or "1=1"
+            filter3_2 = "tGenres.genre = '{}'".format(genre if genre or "1=1")
             with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT SUM(tTitles.runtimeMinutes)/COUNT(*) FROM tTitles {} WHERE tTitles.tconst IN ({}) AND {}".format(filter3_1,str(result1).strip('[]'),filter3_2))
